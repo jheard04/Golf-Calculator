@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,37 +5,63 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TLake's Golf Calculator</title>
   <style>
+    * {
+      box-sizing: border-box;
+    }
     body {
       font-family: 'Segoe UI', sans-serif;
       padding: 20px;
       background-color: #f1f8f4;
       color: #2d4739;
+      max-width: 900px;
+      margin: 0 auto;
     }
     h2 {
       text-align: center;
-      font-size: 2em;
+      font-size: 1.8em;
       margin-bottom: 10px;
     }
-    input, button {
-      margin: 5px;
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .controls label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    input, select, button {
+      margin: 5px 0;
       padding: 10px;
       border: 1px solid #ccc;
       border-radius: 5px;
-      font-size: 1em;
+      font-size: 16px; /* keeps iOS from auto-zooming on focus */
+    }
+    input[type="number"], input[type="text"], select {
+      width: 130px;
     }
     button {
       background-color: #4CAF50;
       color: white;
       border: none;
       cursor: pointer;
+      min-height: 44px;
+      padding: 10px 16px;
     }
     button:hover {
       background-color: #45a049;
     }
-    table {
+    .table-wrapper {
+      overflow-x: auto;
       margin-top: 20px;
+    }
+    table {
       border-collapse: collapse;
       width: 100%;
+      min-width: 420px;
       background-color: white;
       border-radius: 5px;
       overflow: hidden;
@@ -49,6 +74,7 @@
       padding: 12px;
       border: 1px solid #ddd;
       text-align: center;
+      white-space: nowrap;
     }
     ul {
       background-color: rgba(255, 255, 255, 0.9);
@@ -56,14 +82,52 @@
       border-radius: 5px;
       list-style-type: square;
     }
+    .golfer-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+    .hint {
+      font-size: 0.85em;
+      color: #567;
+      margin: 0 0 10px 0;
+    }
     @media (max-width: 600px) {
+      body {
+        padding: 12px;
+      }
+      h2 {
+        font-size: 1.4em;
+      }
+      .controls {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .controls label {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .controls input, .controls select, .controls button {
+        width: 100%;
+      }
       .golfer-row {
-        flex-direction: column !important;
-        align-items: flex-start !important;
+        flex-direction: column;
+        align-items: stretch;
+        background: white;
+        padding: 10px;
+        border-radius: 6px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+      }
+      .golfer-row label {
+        min-width: unset !important;
+        font-weight: 600;
+        margin-top: 6px;
       }
       .golfer-row input {
         width: 100% !important;
-        max-width: 300px;
+        max-width: none;
       }
     }
   </style>
@@ -72,29 +136,67 @@
 
   <h2>TLake's Golf Calculator</h2>
 
-  <label>Number of Golfers: <input type="number" id="numGolfers" min="2" /></label>
-  <button onclick="generateInputs()">Generate Input Fields</button>
-  <button onclick="resetForm()">Reset</button>
+  <div class="controls">
+    <label>Number of Golfers: <input type="number" id="numGolfers" min="2" /></label>
+    <label>Skins Type:
+      <select id="skinsType" onchange="handleSkinsTypeChange()">
+        <option value="straight">Straight Skins</option>
+        <option value="team">Team Skins (2v2)</option>
+      </select>
+    </label>
+  </div>
+  <p class="hint" id="teamHint" style="display:none;">Team Skins requires exactly 4 golfers (teams rotate hole to hole).</p>
+
+  <div class="controls">
+    <button onclick="generateInputs()">Generate Input Fields</button>
+    <button onclick="resetForm()">Reset</button>
+  </div>
 
   <div id="inputs"></div>
 
-  <label>Value per Skin: $<input type="number" id="skinValue" step="0.01" /></label>
-  <label>Value per 3-Putt: $<input type="number" id="puttValue" step="0.01" /></label>
-  <button onclick="calculateResults()">Calculate</button>
+  <div class="controls">
+    <label>Value per Skin: $<input type="number" id="skinValue" step="1" min="0" oninput="this.value = this.value.replace(/[^0-9]/g, '')" /></label>
+    <label>Value per 3-Putt: $<input type="number" id="puttValue" step="1" min="0" oninput="this.value = this.value.replace(/[^0-9]/g, '')" /></label>
+    <button onclick="calculateResults()">Calculate</button>
+  </div>
 
-  <div id="results"></div>
+  <div class="table-wrapper">
+    <div id="results"></div>
+  </div>
   <div id="settlements"></div>
 
   <script>
+    function handleSkinsTypeChange() {
+      const skinsType = document.getElementById('skinsType').value;
+      const numInput = document.getElementById('numGolfers');
+      const hint = document.getElementById('teamHint');
+
+      if (skinsType === 'team') {
+        numInput.value = 4;
+        numInput.readOnly = true;
+        hint.style.display = 'block';
+      } else {
+        numInput.readOnly = false;
+        hint.style.display = 'none';
+      }
+    }
+
     function generateInputs() {
+      const skinsType = document.getElementById('skinsType').value;
       const num = parseInt(document.getElementById('numGolfers').value);
+
+      if (skinsType === 'team' && num !== 4) {
+        alert('Team Skins requires exactly 4 golfers.');
+        return;
+      }
+
       const container = document.getElementById('inputs');
       container.innerHTML = '';
 
       for (let i = 0; i < num; i++) {
         let div = document.createElement('div');
         div.innerHTML = `
-          <div class="golfer-row" style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+          <div class="golfer-row">
             <label style="min-width: 80px;">Golfer ${i + 1}</label>
             <input type="text" id="name${i}" />
             <label>Skins Won:</label>
@@ -111,6 +213,9 @@
 
     function resetForm() {
       document.getElementById('numGolfers').value = '';
+      document.getElementById('numGolfers').readOnly = false;
+      document.getElementById('skinsType').value = 'straight';
+      document.getElementById('teamHint').style.display = 'none';
       document.getElementById('skinValue').value = '';
       document.getElementById('puttValue').value = '';
       document.getElementById('inputs').innerHTML = '';
@@ -120,8 +225,15 @@
 
     function calculateResults() {
       const num = parseInt(document.getElementById('numGolfers').value);
+      const skinsType = document.getElementById('skinsType').value;
       const skinValue = parseFloat(document.getElementById('skinValue').value || 0);
       const puttValue = parseFloat(document.getElementById('puttValue').value || 0);
+
+      if (skinsType === 'team' && num !== 4) {
+        alert('Team Skins requires exactly 4 golfers.');
+        return;
+      }
+
       let golfers = [];
 
       for (let i = 0; i < num; i++) {
@@ -130,41 +242,53 @@
         const skins = parseInt(document.getElementById(`skins${i}`).value || 0);
         const puttstotal = parseInt(document.getElementById(`puttstotal${i}`).value || 0);
         const putts = parseInt(document.getElementById(`putts${i}`).value || 0);
-        golfers.push({ name, skins, putts, puttstotal, money: 0 });
+        golfers.push({ name, skins, putts, puttstotal, skinsMoney: 0, puttMoney: 0 });
       }
 
-      // Pairwise skins logic (each comparison only once)
+      // Pairwise skins logic (each comparison only once) - unchanged, this is correct for straight skins
       for (let i = 0; i < num; i++) {
         for (let j = 0; j < num; j++) {
           if (i !== j) {
             let diff = golfers[i].skins - golfers[j].skins;
             if (diff > 0) {
               let amount = diff * skinValue;
-              golfers[i].money += amount;
-              golfers[j].money -= amount;
+              golfers[i].skinsMoney += amount;
+              golfers[j].skinsMoney -= amount;
             }
           }
         }
       }
 
-      // 3-putts penalty
+      // Team Skins (2v2): a hole loss is charged once (to the opposing team as a whole),
+      // not once per opposing player. Since each golfer's skins count already reflects
+      // wins credited to both teammates together, the pairwise loop above double-counts
+      // every team result once for each of the 2 winners - halving it corrects that.
+      if (skinsType === 'team') {
+        golfers.forEach(g => {
+          g.skinsMoney = g.skinsMoney / 2;
+        });
+      }
+
+      // 3-putts penalty - identical for both skins types
       let total3PuttMoney = 0;
       let fewestTotalPutts = Math.min(...golfers.map(g => g.puttstotal));
       let winners = golfers.filter(g => g.puttstotal === fewestTotalPutts);
 
       golfers.forEach(g => {
         if (g.puttstotal !== fewestTotalPutts) {
-          g.money -= g.putts * puttValue;
+          g.puttMoney -= g.putts * puttValue;
           total3PuttMoney += g.putts * puttValue;
         }
       });
 
       let share = total3PuttMoney / winners.length;
       winners.forEach(w => {
-        w.money += share;
+        w.puttMoney += share;
       });
 
-      golfers.forEach(g => g.money = parseFloat(g.money.toFixed(2)));
+      golfers.forEach(g => {
+        g.money = parseFloat((g.skinsMoney + g.puttMoney).toFixed(2));
+      });
 
       let resultsHtml = `<h3>Results</h3><table><tr><th>Name</th><th>Skins Won</th><th>3-Putts</th><th>Money (±)</th></tr>`;
       golfers.forEach(g => {
