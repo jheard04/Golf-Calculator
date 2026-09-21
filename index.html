@@ -201,6 +201,8 @@
             <input type="text" id="name${i}" />
             <label>Skins Won:</label>
             <input type="number" id="skins${i}" min="0" style="width: 80px;" />
+            <label>Boneyard:</label>
+            <input type="number" id="boneyard${i}" min="0" style="width: 80px;" />
             <label>Putts:</label>
             <input type="number" id="puttstotal${i}" min="0" style="width: 80px;" />
             <label>3-Putts:</label>
@@ -240,9 +242,10 @@
         let name = document.getElementById(`name${i}`).value;
         if (!name.trim()) name = `Golfer ${i + 1}`;
         const skins = parseInt(document.getElementById(`skins${i}`).value || 0);
+        const boneyard = parseInt(document.getElementById(`boneyard${i}`).value || 0);
         const puttstotal = parseInt(document.getElementById(`puttstotal${i}`).value || 0);
         const putts = parseInt(document.getElementById(`putts${i}`).value || 0);
-        golfers.push({ name, skins, putts, puttstotal, skinsMoney: 0, puttMoney: 0 });
+        golfers.push({ name, skins, boneyard, putts, puttstotal, skinsMoney: 0, boneyardMoney: 0, puttMoney: 0 });
       }
 
       // Pairwise skins logic (each comparison only once) - unchanged, this is correct for straight skins
@@ -269,6 +272,21 @@
         });
       }
 
+      // Boneyard: an individual bonus stat, calculated pairwise just like skins,
+      // but always kept on an individual basis - never halved for Team Skins.
+      for (let i = 0; i < num; i++) {
+        for (let j = 0; j < num; j++) {
+          if (i !== j) {
+            let diff = golfers[i].boneyard - golfers[j].boneyard;
+            if (diff > 0) {
+              let amount = diff * skinValue;
+              golfers[i].boneyardMoney += amount;
+              golfers[j].boneyardMoney -= amount;
+            }
+          }
+        }
+      }
+
       // 3-putts penalty - identical for both skins types
       let total3PuttMoney = 0;
       let fewestTotalPutts = Math.min(...golfers.map(g => g.puttstotal));
@@ -287,14 +305,15 @@
       });
 
       golfers.forEach(g => {
-        g.money = parseFloat((g.skinsMoney + g.puttMoney).toFixed(2));
+        g.money = parseFloat((g.skinsMoney + g.boneyardMoney + g.puttMoney).toFixed(2));
       });
 
-      let resultsHtml = `<h3>Results</h3><table><tr><th>Name</th><th>Skins Won</th><th>3-Putts</th><th>Money (±)</th></tr>`;
+      let resultsHtml = `<h3>Results</h3><table><tr><th>Name</th><th>Skins Won</th><th>Boneyard</th><th>3-Putts</th><th>Money (±)</th></tr>`;
       golfers.forEach(g => {
         resultsHtml += `<tr>
           <td>${g.name}</td>
           <td>${g.skins}</td>
+          <td>${g.boneyard}</td>
           <td>${g.putts}</td>
           <td>${g.money >= 0 ? '+$' + g.money.toFixed(2) : '-$' + Math.abs(g.money).toFixed(2)}</td>
         </tr>`;
