@@ -176,15 +176,20 @@
   </div>
 
   <div class="controls">
-    <label>Number of Golfers: <input type="number" id="numGolfers" min="2" /></label>
-    <label>Skins Type:
+    <label>Game Type:
       <select id="skinsType" onchange="handleSkinsTypeChange()">
         <option value="straight">Straight Skins</option>
         <option value="team">Team Skins (2v2)</option>
       </select>
     </label>
+    <label>Golfers: #<input type="number" id="numGolfers" min="2" /></label>
   </div>
   <p class="hint" id="teamHint" style="display:none;">Team Skins requires exactly 4 golfers (teams rotate hole to hole).</p>
+
+  <div class="controls">
+    <label>Skin: $<input type="number" id="skinValue" step="1" min="0" oninput="this.value = this.value.replace(/[^0-9]/g, '')" /></label>
+    <label>3-Putt: $<input type="number" id="puttValue" step="1" min="0" oninput="this.value = this.value.replace(/[^0-9]/g, '')" /></label>
+  </div>
 
   <div class="controls">
     <button onclick="generateInputs()">Generate Input Fields</button>
@@ -194,8 +199,6 @@
   <div id="inputs"></div>
 
   <div class="controls">
-    <label>Value per Skin: $<input type="number" id="skinValue" step="1" min="0" oninput="this.value = this.value.replace(/[^0-9]/g, '')" /></label>
-    <label>Value per 3-Putt: $<input type="number" id="puttValue" step="1" min="0" oninput="this.value = this.value.replace(/[^0-9]/g, '')" /></label>
     <button onclick="calculateResults()">Calculate</button>
   </div>
 
