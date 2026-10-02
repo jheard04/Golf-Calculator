@@ -11,8 +11,8 @@
     body {
       font-family: 'Segoe UI', sans-serif;
       padding: 20px;
-      background-color: #f1f8f4;
-      color: #2d4739;
+      background-color: #0b5d2e;
+      color: #1f2d1f;
       max-width: 900px;
       margin: 0 auto;
     }
@@ -20,6 +20,7 @@
       text-align: center;
       font-size: 1.8em;
       margin-bottom: 10px;
+      color: #f4f1e8;
     }
     .controls {
       display: flex;
@@ -32,6 +33,7 @@
       display: flex;
       align-items: center;
       gap: 6px;
+      color: #f4f1e8;
     }
     input, select, button {
       margin: 5px 0;
@@ -44,7 +46,7 @@
       width: 130px;
     }
     button {
-      background-color: #4CAF50;
+      background-color: #c9a227;
       color: white;
       border: none;
       cursor: pointer;
@@ -52,7 +54,7 @@
       padding: 10px 16px;
     }
     button:hover {
-      background-color: #45a049;
+      background-color: #b38d1f;
     }
     .table-wrapper {
       overflow-x: auto;
@@ -67,8 +69,8 @@
       overflow: hidden;
     }
     th {
-      background-color: #4CAF50;
-      color: white;
+      background-color: #f4f1e8;
+      color: #1f2d1f;
     }
     th, td {
       padding: 12px;
@@ -89,12 +91,15 @@
       margin-bottom: 10px;
       flex-wrap: wrap;
     }
+    .golfer-row label {
+      color: #f4f1e8;
+    }
     .paren {
       font-size: 0.75em;
     }
     .hint {
       font-size: 0.85em;
-      color: #567;
+      color: #f4f1e8;
       margin: 0 0 10px 0;
     }
     @media (max-width: 600px) {
@@ -127,6 +132,7 @@
         min-width: unset !important;
         font-weight: 600;
         margin-top: 6px;
+        color: #1f2d1f;
       }
       .golfer-row input {
         width: 100% !important;
@@ -204,7 +210,7 @@
             <input type="text" id="name${i}" />
             <label>Skins Won:</label>
             <input type="number" id="skins${i}" min="0" style="width: 80px;" />
-            <label>Other<span class="paren">(Greenies/Camel/Shark/SS)</span>:</label>
+            <label>Scraps<span class="paren">(Greenies/Camel/Shark/SS)</span>:</label>
             <input type="number" id="boneyard${i}" min="0" style="width: 80px;" />
             <label>Putts:</label>
             <input type="number" id="puttstotal${i}" min="0" style="width: 80px;" />
@@ -311,7 +317,7 @@
         g.money = parseFloat((g.skinsMoney + g.boneyardMoney + g.puttMoney).toFixed(2));
       });
 
-      let resultsHtml = `<h3>Results</h3><table><tr><th>Name</th><th>Skins Won</th><th>Other<br><span class="paren">(Greenies/Camel/Shark/SS)</span></th><th>3-Putts</th><th>Money (±)</th></tr>`;
+      let resultsHtml = `<h3>Results</h3><table><tr><th>Name</th><th>Skins Won</th><th>Scraps<br><span class="paren">(Greenies/Camel/Shark/SS)</span></th><th>3-Putts</th><th>Money (±)</th></tr>`;
       golfers.forEach(g => {
         resultsHtml += `<tr>
           <td>${g.name}</td>
